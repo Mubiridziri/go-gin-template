@@ -22,7 +22,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: [1.24]
+        go-version: [ 1.24 ]
 
     steps:
       - name: Check out code
@@ -32,6 +32,10 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
+
+      - name: Build swagger
+        run: |
+          swag init -g ./cmd/app/main.go
 
       - name: Lint
         uses: golangci/golangci-lint-action@v6
@@ -48,13 +52,9 @@ jobs:
         run: |
           go test ./... -v
 
-      - name: Build swagger
-        run: |
-          swag init -g ./cmd/dralion/main.go
-
       - name: Build binary
         run: |
-          go build -v ./cmd/dralion
+          go build -v ./cmd/app
 
   deploy:
     runs-on: ubuntu-latest
@@ -78,11 +78,11 @@ jobs:
 
       - name: Build Api Doc
         run: |
-          swag init -g ./cmd/dralion/main.go
+          swag init -g ./cmd/app/main.go
 
       - name: Build Binary
         run: |
-          go build -v ./cmd/dralion
+          go build -v ./cmd/app
 
       - name: Setup SSH
         run: |
@@ -93,10 +93,10 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          scp dralion ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/dralion
+          scp app ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USER }}/app
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
-          sudo systemctl stop dralion || true
-          sudo mv /home/${{ secrets.VPS_USER }}/dralion /usr/local/bin/dralion
-          sudo chmod +x /usr/local/bin/dralion
-          sudo systemctl start dralion
+          sudo systemctl stop app || true
+          sudo mv /home/${{ secrets.VPS_USER }}/app /usr/local/bin/app
+          sudo chmod +x /usr/local/bin/app
+          sudo systemctl start app
           "
