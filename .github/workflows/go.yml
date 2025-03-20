@@ -33,6 +33,12 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Install Dependencies
+        run: |
+          go mod download
+          go install github.com/swaggo/swag/cmd/swag
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
       - name: Build swagger
         run: |
           swag init -g ./cmd/app/main.go
@@ -41,12 +47,6 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.64
-
-      - name: Install Dependencies
-        run: |
-          go mod download
-          go install github.com/swaggo/swag/cmd/swag
-          echo "$HOME/go/bin" >> $GITHUB_PATH
 
       - name: Run Tests
         run: |
